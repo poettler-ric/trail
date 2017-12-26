@@ -243,7 +243,7 @@ func main() {
 		n := elements[i+1]
 		invalid := false
 		if e.Vp == 100 || n.Vp == 100 {
-			invalid = abs(e.Vp-n.Vp) > 30
+			invalid = abs(e.Vp-n.Vp) >= 20
 		} else {
 			invalid = abs(e.Vp-n.Vp) > 20
 		}
