@@ -88,7 +88,7 @@ func determineElementType(s string) ElementType {
 	return result
 }
 
-func determineRediusVp(radius float64) (vp int) {
+func determineRadiusVp(radius float64) (vp int) {
 	radius = math.Abs(radius)
 	if radius <= 30 {
 		vp = 40
@@ -200,7 +200,7 @@ func main() {
 	// determine radius vp
 	for _, e := range elements {
 		if e.Type == Radius {
-			e.Vp = min(MaxVp, determineRediusVp(e.Radius))
+			e.Vp = min(MaxVp, determineRadiusVp(e.Radius))
 		}
 	}
 
