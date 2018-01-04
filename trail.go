@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"flag"
 	"fmt"
+	"github.com/olekukonko/tablewriter"
 	"log"
 	"math"
 	"os"
@@ -285,13 +286,6 @@ func main() {
 	for _, e := range elements {
 		if e.Length < e.MinLength {
 			e.Errors |= EMinLength
-		}
-	}
-
-	// list invalid elements
-	for _, e := range elements {
-		if e.Errors != 0 {
-			fmt.Println(e)
 		}
 	}
 
