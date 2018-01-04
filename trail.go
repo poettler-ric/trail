@@ -48,6 +48,12 @@ var (
 		90: []float64{70},
 	}
 
+	typeTranslations = map[string]ElementType{
+		"Gerade":    Straight,
+		"Radius":    Radius,
+		"Klothoide": Clothoid,
+	}
+
 	printAll = flag.Bool("all", false, "print all elemenets")
 )
 
@@ -103,17 +109,12 @@ func readElement(row []string) *Element {
 	return result
 }
 
-func determineElementType(s string) ElementType {
-	var result ElementType
-	switch s {
-	case "Gerade":
-		result = Straight
-	case "Radius":
-		result = Radius
-	default:
+func determineElementType(s string) (result ElementType) {
+	result, ok := typeTranslations[s]
+	if !ok {
 		log.Fatalf("unknown type: %v", s)
 	}
-	return result
+	return
 }
 
 func determineRadiusVp(radius float64) (vp int) {
