@@ -159,7 +159,11 @@ func determineStraightVp(radiusVp int, length float64) (vp int) {
 	found := false
 	vpAddition := radiusVp % 10
 	vp = radiusVp - vpAddition
-	for i, minLength := range straightVps[vp] {
+	vps, ok := straightVps[vp]
+	if !ok {
+		log.Fatalf("vp not found (%v)", vp)
+	}
+	for i, minLength := range vps {
 		if length <= minLength {
 			vp += 10*i + vpAddition
 			found = true
