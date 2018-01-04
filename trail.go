@@ -48,6 +48,25 @@ var (
 		90: []float64{70},
 	}
 
+	clothoidMinLengths = map[int]float64{
+		40:  15,
+		45:  20,
+		50:  20,
+		55:  30,
+		60:  30,
+		65:  39,
+		70:  39,
+		75:  44,
+		80:  44,
+		85:  50,
+		90:  50,
+		95:  56,
+		100: 56,
+		110: 61,
+		120: 67,
+		130: 72,
+	}
+
 	typeTranslations = map[string]ElementType{
 		"Gerade":    Straight,
 		"Radius":    Radius,
@@ -176,6 +195,14 @@ func determineStraightVp(radiusVp int, length float64) (vp int) {
 	return
 }
 
+func determineMinClothoidLength(radiusVp int) (length float64) {
+	length, ok := clothoidMinLengths[radiusVp]
+	if !ok {
+		log.Fatalf("no clothoid length found for vp (%v)", radiusVp)
+	}
+	return
+}
+
 func abs(a int) int {
 	if a < 0 {
 		return -a
@@ -197,8 +224,30 @@ func max(a, b int) int {
 	return b
 }
 
-func getNextRadius(elements []*Element, pos, increment int) (result *Element) {
+func getNextRadius(elements []*Element, pos int) (result *Element) {
+	result, _ = getDirectedNextRadius(elements, pos, 1)
+	return
+}
+
+func getPreviousRadius(elements []*Element, pos int) (result *Element) {
+	result, _ = getDirectedNextRadius(elements, pos, -1)
+	return
+}
+
+func getNearestRadius(elements []*Element, pos int) (result *Element) {
+	previous, previousDistance := getDirectedNextRadius(elements, pos, -1)
+	next, nextDistance := getDirectedNextRadius(elements, pos, 1)
+	if previousDistance < nextDistance {
+		result = previous
+	} else {
+		result = next
+	}
+	return
+}
+
+func getDirectedNextRadius(elements []*Element, pos, increment int) (result *Element, distance int) {
 	for i := pos + increment; i > 0 && i < len(elements); i += increment {
+		distance++
 		if elements[i].Type == Radius {
 			result = elements[i]
 			break
@@ -243,10 +292,10 @@ func main() {
 	for i, e := range elements {
 		if e.Type == Straight {
 			radiusVp := 0
-			if r := getNextRadius(elements, i, -1); r != nil {
+			if r := getPreviousRadius(elements, i); r != nil {
 				radiusVp = max(r.Vp, radiusVp)
 			}
-			if r := getNextRadius(elements, i, 1); r != nil {
+			if r := getNextRadius(elements, i); r != nil {
 				radiusVp = max(r.Vp, radiusVp)
 			}
 			e.Vp = determineStraightVp(radiusVp, e.Length)
@@ -261,8 +310,8 @@ func main() {
 		case Straight:
 			e.MinLength = drivingSecondLength(e.Vp, 1)
 			// radi in the same direction need 5 seconds
-			p := getNextRadius(elements, i, -1)
-			n := getNextRadius(elements, i, 1)
+			p := getPreviousRadius(elements, i)
+			n := getNextRadius(elements, i)
 			if p != nil && n != nil {
 				if p.Radius < 0 && n.Radius < 0 {
 					e.MinLength = drivingSecondLength(e.Vp, 5)
@@ -270,6 +319,11 @@ func main() {
 					e.MinLength = drivingSecondLength(e.Vp, 5)
 				}
 			}
+		case Clothoid:
+			radius := getNearestRadius(elements, i)
+			e.MinLength = determineMinClothoidLength(radius.Vp)
+		default:
+			log.Fatalf("unknown ElementType (%v)", e.Type)
 		}
 	}
 
@@ -304,6 +358,5 @@ func main() {
 			}
 		}
 		printElements(invalid)
-
 	}
 }
