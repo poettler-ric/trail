@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/csv"
+	"flag"
 	"fmt"
 	"log"
 	"math"
@@ -45,7 +46,33 @@ var (
 		80: []float64{60, 180},
 		90: []float64{70},
 	}
+
+	printAll = flag.Bool("all", false, "print all elemenets")
 )
+
+func printElements(elements []*Element) {
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader([]string{
+		"Id",
+		"Type",
+		"Length",
+		"Radius",
+		"Vp",
+		"MinLength",
+		"Errors"})
+	for _, e := range elements {
+		table.Append([]string{
+			strconv.Itoa(e.Id),
+			strconv.Itoa(int(e.Type)),
+			fmt.Sprintf("%.2f", e.Length),
+			fmt.Sprintf("%.2f", e.Radius),
+			strconv.Itoa(e.Vp),
+			fmt.Sprintf("%.2f", e.MinLength),
+			strconv.Itoa(int(e.Errors)),
+		})
+	}
+	table.Render()
+}
 
 func readElement(row []string) *Element {
 	result := new(Element)
@@ -179,7 +206,9 @@ func drivingSecondLength(vp, seconds int) float64 {
 }
 
 func main() {
-	file, err := os.Open(os.Args[1])
+	flag.Parse()
+
+	file, err := os.Open(flag.Args()[0])
 	if err != nil {
 		log.Fatalf("failed opening the file: %v", err)
 	}
@@ -264,5 +293,18 @@ func main() {
 		if e.Errors != 0 {
 			fmt.Println(e)
 		}
+	}
+
+	if *printAll {
+		printElements(elements)
+	} else {
+		var invalid []*Element
+		for _, e := range elements {
+			if e.Errors != 0 {
+				invalid = append(invalid, e)
+			}
+		}
+		printElements(invalid)
+
 	}
 }
