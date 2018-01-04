@@ -255,10 +255,10 @@ func main() {
 
 	// determine minimum length of elements
 	for i, e := range elements {
-		if e.Type == Radius {
+		switch e.Type {
+		case Radius:
 			e.MinLength = drivingSecondLength(e.Vp, 1)
-		}
-		if e.Type == Straight {
+		case Straight:
 			e.MinLength = drivingSecondLength(e.Vp, 1)
 			// radi in the same direction need 5 seconds
 			p := getNextRadius(elements, i, -1)
