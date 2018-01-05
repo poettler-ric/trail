@@ -9,6 +9,7 @@ import (
 	"math"
 	"os"
 	"strconv"
+	"strings"
 )
 
 type ElementType int
@@ -73,8 +74,34 @@ var (
 		"Klothoide": Clothoid,
 	}
 
+	typeStringifications = map[ElementType]string{
+		Straight: "Straight",
+		Radius:   "Radius",
+		Clothoid: "Clothoid",
+	}
+
 	printAll = flag.Bool("all", false, "print all elemenets")
 )
+
+func stringifyErrors(e Flag) (result string) {
+	errorStrings := make([]string, 0, 2)
+	if e&EVpDiff != 0 {
+		errorStrings = append(errorStrings, "VpDiff")
+	}
+	if e&EMinLength != 0 {
+		errorStrings = append(errorStrings, "MinLength")
+	}
+	result = strings.Join(errorStrings, ", ")
+	return
+}
+
+func stringifyType(t ElementType) (result string) {
+	result, ok := typeStringifications[t]
+	if !ok {
+		log.Fatalf("unknown type (%v)", t)
+	}
+	return
+}
 
 func printElements(elements []*Element) {
 	table := tablewriter.NewWriter(os.Stdout)
@@ -89,12 +116,12 @@ func printElements(elements []*Element) {
 	for _, e := range elements {
 		table.Append([]string{
 			strconv.Itoa(e.Id),
-			strconv.Itoa(int(e.Type)),
+			stringifyType(e.Type),
 			fmt.Sprintf("%.2f", e.Length),
 			fmt.Sprintf("%.2f", e.Radius),
 			strconv.Itoa(e.Vp),
 			fmt.Sprintf("%.2f", e.MinLength),
-			strconv.Itoa(int(e.Errors)),
+			stringifyErrors(e.Errors),
 		})
 	}
 	table.Render()
