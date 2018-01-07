@@ -264,10 +264,12 @@ func getPreviousRadius(elements []*Element, pos int) (result *Element) {
 func getNearestRadius(elements []*Element, pos int) (result *Element) {
 	previous, previousDistance := getDirectedNextRadius(elements, pos, -1)
 	next, nextDistance := getDirectedNextRadius(elements, pos, 1)
-	if previousDistance < nextDistance {
+	if previousDistance < nextDistance && previousDistance != 0 {
 		result = previous
-	} else {
+	} else if nextDistance != 0 {
 		result = next
+	} else {
+		log.Fatalf("could not find nearest radius")
 	}
 	return
 }
