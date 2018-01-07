@@ -331,6 +331,14 @@ func main() {
 		}
 	}
 
+	// determine clothoid vp
+	for i, e := range elements {
+		if e.Type == Clothoid {
+			radius := getNearestRadius(elements, i)
+			e.Vp = radius.Vp
+		}
+	}
+
 	// determine minimum length of elements
 	for i, e := range elements {
 		switch e.Type {
@@ -388,4 +396,14 @@ func main() {
 		}
 		printElements(invalid)
 	}
+
+	// calculate mean vp
+	var totalLength float64
+	var vpProduct float64
+	for _, e := range elements {
+		totalLength += e.Length
+		vpProduct += e.Length * float64(e.Vp)
+	}
+	meanVp := vpProduct / totalLength
+	fmt.Printf("mean vp: %.2f km/h\n", meanVp)
 }
