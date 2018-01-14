@@ -22,7 +22,6 @@ type Element struct {
 	Radius    float64
 	Vp        int
 	MinLength float64
-	MaxLength float64
 	AMin      float64
 	AMax      float64
 	Errors    Flag
@@ -36,7 +35,6 @@ const (
 const (
 	EVpDiff Flag = 1 << iota
 	EMinLength
-	EMaxLength
 )
 const (
 	MaxVp         int = 100
@@ -395,8 +393,7 @@ func main() {
 			}
 		case Clothoid:
 			radius := getNearestRadius(elements, i)
-			e.MinLength = radius.AMin
-			e.MaxLength = radius.AMax
+			e.MinLength = determineMinClothoidLength(radius.Vp)
 		default:
 			log.Fatalf("unknown ElementType (%v)", e.Type)
 		}
@@ -420,9 +417,6 @@ func main() {
 	for _, e := range elements {
 		if e.Length < e.MinLength {
 			e.Errors |= EMinLength
-		}
-		if e.MaxLength != 0 && e.Length > e.MaxLength {
-			e.Errors |= EMaxLength
 		}
 	}
 
