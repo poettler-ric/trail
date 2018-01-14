@@ -22,6 +22,9 @@ type Element struct {
 	Radius    float64
 	Vp        int
 	MinLength float64
+	MaxLength float64
+	AMin      float64
+	AMax      float64
 	Errors    Flag
 }
 
@@ -33,6 +36,7 @@ const (
 const (
 	EVpDiff Flag = 1 << iota
 	EMinLength
+	EMaxLength
 )
 const (
 	MaxVp         int = 100
@@ -112,6 +116,8 @@ func createTable(elements []*Element) (result [][]string) {
 		"Radius",
 		"Vp",
 		"MinLength",
+		"AMin",
+		"AMax",
 		"Errors"})
 	for _, e := range elements {
 		result = append(result, []string{
@@ -121,6 +127,8 @@ func createTable(elements []*Element) (result [][]string) {
 			fmt.Sprintf("%.2f", e.Radius),
 			strconv.Itoa(e.Vp),
 			fmt.Sprintf("%.2f", e.MinLength),
+			fmt.Sprintf("%.2f", e.AMin),
+			fmt.Sprintf("%.2f", e.AMax),
 			stringifyErrors(e.Errors),
 		})
 	}
@@ -335,10 +343,14 @@ func main() {
 		elements = append(elements, readElement(row))
 	}
 
-	// determine radius vp
+	// determine radius vp and length of clothoids
 	for _, e := range elements {
 		if e.Type == Radius {
 			e.Vp = min(MaxVp, determineRadiusVp(e.Radius))
+
+			lClothMin := determineMinClothoidLength(e.Vp)
+			e.AMin = math.Sqrt(math.Abs(e.Radius) * lClothMin)
+			e.AMax = math.Sqrt(math.Abs(e.Radius) * lClothMin * 2)
 		}
 	}
 
@@ -383,7 +395,8 @@ func main() {
 			}
 		case Clothoid:
 			radius := getNearestRadius(elements, i)
-			e.MinLength = determineMinClothoidLength(radius.Vp)
+			e.MinLength = radius.AMin
+			e.MaxLength = radius.AMax
 		default:
 			log.Fatalf("unknown ElementType (%v)", e.Type)
 		}
@@ -403,10 +416,13 @@ func main() {
 			n.Errors |= EVpDiff
 		}
 	}
-	// check minimum lengths
+	// check lengths
 	for _, e := range elements {
 		if e.Length < e.MinLength {
 			e.Errors |= EMinLength
+		}
+		if e.MaxLength != 0 && e.Length > e.MaxLength {
+			e.Errors |= EMaxLength
 		}
 	}
 
