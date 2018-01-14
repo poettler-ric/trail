@@ -80,7 +80,8 @@ var (
 		Clothoid: "Clothoid",
 	}
 
-	printAll = flag.Bool("all", false, "print all elemenets")
+	printAll  = flag.Bool("all", false, "print all elemenets")
+	exportCSV = flag.String("csv", "", "export table to a csv file")
 )
 
 func stringifyErrors(e Flag) (result string) {
@@ -103,9 +104,8 @@ func stringifyType(t ElementType) (result string) {
 	return
 }
 
-func printElements(elements []*Element) {
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{
+func createTable(elements []*Element) (result [][]string) {
+	result = append(result, []string{
 		"Id",
 		"Type",
 		"Length",
@@ -114,7 +114,7 @@ func printElements(elements []*Element) {
 		"MinLength",
 		"Errors"})
 	for _, e := range elements {
-		table.Append([]string{
+		result = append(result, []string{
 			strconv.Itoa(e.Id),
 			stringifyType(e.Type),
 			fmt.Sprintf("%.2f", e.Length),
@@ -124,7 +124,28 @@ func printElements(elements []*Element) {
 			stringifyErrors(e.Errors),
 		})
 	}
-	table.Render()
+	return
+}
+
+func printTable(table [][]string) {
+	out := tablewriter.NewWriter(os.Stdout)
+	out.SetHeader(table[0])
+	for _, e := range table[1:] {
+		out.Append(e)
+	}
+	out.Render()
+}
+
+func writeCSV(table [][]string) {
+	f, err := os.Create(*exportCSV)
+	if err != nil {
+		log.Fatalf("failed writing data: %v", err)
+	}
+	defer f.Close()
+
+	w := csv.NewWriter(f)
+	w.WriteAll(table)
+	w.Flush()
 }
 
 func readElement(row []string) *Element {
@@ -389,8 +410,9 @@ func main() {
 		}
 	}
 
+	var table [][]string
 	if *printAll {
-		printElements(elements)
+		table = createTable(elements)
 	} else {
 		var invalid []*Element
 		for _, e := range elements {
@@ -398,7 +420,12 @@ func main() {
 				invalid = append(invalid, e)
 			}
 		}
-		printElements(invalid)
+		table = createTable(invalid)
+	}
+	printTable(table)
+
+	if *exportCSV != "" {
+		writeCSV(table)
 	}
 
 	// calculate mean vp
