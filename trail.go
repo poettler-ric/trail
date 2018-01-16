@@ -12,11 +12,15 @@ import (
 	"strings"
 )
 
+// ElementType is one of Straight, Clothoid or Radius
 type ElementType int
+
+// Flag represents a bitmask
 type Flag uint
 
+// Element is one trail element
 type Element struct {
-	Id        int
+	ID        int
 	Type      ElementType
 	Length    float64
 	Radius    float64
@@ -27,15 +31,20 @@ type Element struct {
 	Errors    Flag
 }
 
+// ElementTypes for constructing a trail
 const (
 	Straight ElementType = iota
 	Clothoid
 	Radius
 )
+
+// Errorflags
 const (
 	EVpDiff Flag = 1 << iota
 	EMinLength
 )
+
+// Highest Vps to design for
 const (
 	MaxVp         int = 100
 	MaxStraightVp int = 100
@@ -108,7 +117,7 @@ func stringifyType(t ElementType) (result string) {
 
 func createTable(elements []*Element) (result [][]string) {
 	result = append(result, []string{
-		"Id",
+		"ID",
 		"Type",
 		"Length",
 		"Radius",
@@ -119,7 +128,7 @@ func createTable(elements []*Element) (result [][]string) {
 		"Errors"})
 	for _, e := range elements {
 		result = append(result, []string{
-			strconv.Itoa(e.Id),
+			strconv.Itoa(e.ID),
 			stringifyType(e.Type),
 			fmt.Sprintf("%.2f", e.Length),
 			fmt.Sprintf("%.2f", e.Radius),
@@ -158,7 +167,7 @@ func readElement(row []string) *Element {
 	result := new(Element)
 	var err error
 
-	result.Id, err = strconv.Atoi(row[0])
+	result.ID, err = strconv.Atoi(row[0])
 	if err != nil {
 		log.Fatalf("couldn't convert %v to int %v", row[0], err)
 	}
