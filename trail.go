@@ -115,6 +115,13 @@ func stringifyType(t ElementType) (result string) {
 	return
 }
 
+func printFloat(f float64) (result string) {
+	if f != 0 {
+		result = fmt.Sprintf("%.2f", f)
+	}
+	return
+}
+
 func createTable(elements []*Element) (result [][]string) {
 	result = append(result, []string{
 		"ID",
@@ -130,12 +137,12 @@ func createTable(elements []*Element) (result [][]string) {
 		result = append(result, []string{
 			strconv.Itoa(e.ID),
 			stringifyType(e.Type),
-			fmt.Sprintf("%.2f", e.Length),
-			fmt.Sprintf("%.2f", e.Radius),
+			printFloat(e.Length),
+			printFloat(e.Radius),
 			strconv.Itoa(e.Vp),
-			fmt.Sprintf("%.2f", e.MinLength),
-			fmt.Sprintf("%.2f", e.AMin),
-			fmt.Sprintf("%.2f", e.AMax),
+			printFloat(e.MinLength),
+			printFloat(e.AMin),
+			printFloat(e.AMax),
 			stringifyErrors(e.Errors),
 		})
 	}
@@ -179,7 +186,7 @@ func readElement(row []string) *Element {
 		log.Fatalf("couldn't convert %v to float %v", row[3], err)
 	}
 
-	if len(row[6]) > 0 {
+	if len(row[6]) > 0 && result.Type == Radius {
 		result.Radius, err = strconv.ParseFloat(row[6], 64)
 		if err != nil {
 			log.Fatalf("couldn't convert %v to float %v",
